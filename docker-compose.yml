@@ -1,15 +1,23 @@
 services:
-  api-gateway:
-    image: tedymoisa/micro-link-shortner/api-gateway
-    build:
-      context: ./api-gateway
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
+  postgres:
+    image: postgres:16
+    container_name: micro-link-shortener-postgres
+    restart: unless-stopped
     environment:
-      PORT: 8080
-      DATABASE_URL: postgres://user:pass@dbhost:5432/db
-      NODE_ENV: development
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     mem_limit: 512m
     cpus: 0.5
-    restart: unless-stopped
+
+volumes:
+  postgres_data:
