@@ -1,4 +1,5 @@
 import { Router } from "express";
+import urlRouter from "./url-routes.js";
 
 const router = Router();
 
@@ -7,6 +8,6 @@ router.get("/", (req, res) => {
   res.send("Hello from Express with TypeScript!");
 });
 
-// router.use("/api/greet", greetRoutes);
+router.use("/api", urlRouter);
 
 export default router;
