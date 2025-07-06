@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "node",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "target": "ES2022" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
     "rootDir": "src",
     "outDir": "dist",

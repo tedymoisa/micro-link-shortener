@@ -1,7 +1,7 @@
 import pino from "pino";
-import { env } from "./env";
+import { env } from "./env.js";
 
-const logger = pino({
+const logger = pino.default({
   level: env.LOG_LEVEL,
   transport:
     env.NODE_ENV !== "production"
