@@ -1,5 +1,9 @@
-import { config as dotenvConfig } from "dotenv";
 import { z } from "zod";
+import { config as dotenvConfig } from "dotenv";
+
+dotenvConfig({
+  path: process.env.NODE_ENV === "production" ? ".env.production" : ".env",
+});
 
 export enum PinoLogLevel {
   FATAL = "fatal",
@@ -10,10 +14,6 @@ export enum PinoLogLevel {
   TRACE = "trace",
 }
 
-dotenvConfig({
-  path: process.env.NODE_ENV === "production" ? ".env.production" : ".env",
-});
-
 const envSchema = z.object({
   PORT: z.string().default("3000"),
   LOG_LEVEL: z.nativeEnum(PinoLogLevel).default(PinoLogLevel.INFO),
@@ -22,14 +22,19 @@ const envSchema = z.object({
   DB_USER: z.string(),
   DB_PASSWORD: z.string(),
   DB_DATABASE: z.string(),
+  RABBIT_MQ_HOST: z.string(),
+  RABBIT_MQ_USER: z.string(),
+  RABBIT_MQ_PASSWORD: z.string(),
+  RABBIT_MQ_PORT: z.string().default("5672"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
 
 const _env = envSchema.safeParse(process.env);
-
 if (!_env.success) {
   console.error("❌ Invalid environment variables:", _env.error.format());
   process.exit(1);
 }
 
-export const env = _env.data;
+const env = _env.data;
+
+export default env;

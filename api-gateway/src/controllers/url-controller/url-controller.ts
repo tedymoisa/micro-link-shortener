@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { ShortenReq } from "./dto/ShortenReq.js";
 import { ShortenRes } from "./dto/ShortenRes.js";
 import urlService from "../../services/url-service.js";
-import { getRabbitMqChannel } from "../../config/rabbitmq.js";
+import channel from "../../config/rabbitmq.js";
 
 export const createShortUrl = async (req: Request<{}, {}, ShortenReq>, res: Response<ShortenRes>) => {
   const { longUrl } = req.body;
@@ -15,9 +15,8 @@ export const createShortUrl = async (req: Request<{}, {}, ShortenReq>, res: Resp
     return;
   }
 
-  const channel = await getRabbitMqChannel();
-  await channel.assertQueue("tasks", { durable: true });
-  channel.sendToQueue("tasks", Buffer.from(JSON.stringify({ type: "URL_CREATED", shortCode: shortCode })));
+  await channel?.assertQueue("tasks", { durable: true });
+  channel?.sendToQueue("tasks", Buffer.from(JSON.stringify({ type: "URL_CREATED", shortCode: shortCode })));
 
   res.json(row);
 };
