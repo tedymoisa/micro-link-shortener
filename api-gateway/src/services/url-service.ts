@@ -36,9 +36,32 @@ const updateUrls = async (shortCode: string, longUrl: string) => {
   return data?.rows[0] ?? null;
 };
 
+const getUrl = async (shortCode: string): Promise<Url | null> => {
+  const { data, error } = await tryCatch(
+    db.query<Url>(
+      `
+      SELECT id, short_code, long_url, created_at FROM urls
+      WHERE short_code = $1;
+      `,
+      [shortCode],
+    ),
+  );
+
+  if (error) {
+    logger.error("Database query error for short code lookup!", {
+      error,
+      shortCode,
+    });
+    return null;
+  }
+
+  return data?.rows[0] ?? null;
+};
+
 const urlService = {
   generateRandomShortCode: generateRandomShortCode,
   updateUrls: updateUrls,
+  getUrl: getUrl,
 };
 
 export default urlService;

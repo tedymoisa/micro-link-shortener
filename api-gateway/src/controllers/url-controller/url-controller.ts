@@ -21,4 +21,14 @@ export const createShortUrl = async (req: Request<{}, {}, ShortenReq>, res: Resp
   res.json(row);
 };
 
-export const getUrl = () => {};
+export const getUrl = async (req: Request, res: Response) => {
+  const { shortCode } = req.params;
+
+  const row = await urlService.getUrl(shortCode);
+  if (!row) {
+    res.status(400);
+    return;
+  }
+
+  res.json(row);
+};

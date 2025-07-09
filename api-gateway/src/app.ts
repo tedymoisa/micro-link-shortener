@@ -1,6 +1,5 @@
 import env from "./config/env.js";
 import logger from "./config/logger.js";
-import "./config/instrumentation.js";
 import "./config/rabbitmq.js";
 import "./config/db.js";
 
