@@ -42,4 +42,4 @@ export async function initializeDatabase() {
   }
 }
 
-await initializeDatabase();
+// await initializeDatabase();

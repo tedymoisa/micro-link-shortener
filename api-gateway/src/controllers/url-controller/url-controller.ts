@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import { ShortenReq } from "./dto/ShortenReq.js";
 import { ShortenRes } from "./dto/ShortenRes.js";
 import urlService from "../../services/url-service.js";
-import channel from "../../config/rabbitmq.js";
+import { getRabbitMQChannel, publishMessage, sendMessage } from "../../config/rabbitmq.js";
+import { RABBIT_MQ_EXHANGES } from "../../lib/rabbitmq-exhanges.js";
 
 export const createShortUrl = async (req: Request<{}, {}, ShortenReq>, res: Response<ShortenRes>) => {
   const { longUrl } = req.body;
@@ -15,8 +16,8 @@ export const createShortUrl = async (req: Request<{}, {}, ShortenReq>, res: Resp
     return;
   }
 
-  await channel?.assertQueue("tasks", { durable: true });
-  channel?.sendToQueue("tasks", Buffer.from(JSON.stringify({ type: "URL_CREATED", shortCode: shortCode })));
+  // sendMessage("tasks", JSON.stringify({ type: "URL_CREATED", shortCode: shortCode }));
+  publishMessage(RABBIT_MQ_EXHANGES.QR_CODE_SERVICE_EXCHANGE, undefined, JSON.stringify({ shortCode: shortCode }));
 
   res.json(row);
 };
