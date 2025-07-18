@@ -2,7 +2,7 @@
   "name": "api-gateway",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "app.ts",
   "scripts": {
     "start": "tsx src/app.ts",
     "dev": "tsx watch src/app.ts",
