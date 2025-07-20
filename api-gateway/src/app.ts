@@ -1,12 +1,17 @@
 import env from "./config/env.js";
 import logger from "./config/logger.js";
-// import "./config/db.js";
 
 import express from "express";
 import pinoHttp from "pino-http";
-import routes from "./routes/index.js";
-import { closeRabbitMQ, connectRabbitMQ } from "./config/rabbitmq.js";
-import { RABBIT_MQ_EXHANGES } from "./lib/rabbitmq-exhanges.js";
+import { closeRabbitMQ, connectRabbitMQ, getRabbitMQChannel } from "./config/rabbitmq.js";
+import { RABBIT_MQ_QUEUES } from "./lib/globals.js";
+import { closeDbPool, connectToDb, getDbPool } from "./config/db.js";
+import createUrlRepository from "./repositories/url-repository.js";
+import createUrlService from "./services/url-service.js";
+import createUrlController from "./controllers/url-controller/url-controller.js";
+import createUrlRouter from "./routes/url-routes.js";
+import createMainRouter from "./routes/index.js";
+import { getFormattedErrorMessage } from "./lib/error.js";
 
 const port = env.PORT;
 
@@ -16,43 +21,31 @@ app.use(express.json());
 
 async function startApplication() {
   try {
-    logger.info("Attempting to connect to RabbitMQ...");
-    const rabbitMQChannel = await connectRabbitMQ();
-    logger.info("RabbitMQ connection successful.");
+    await connectToDb();
+    connectRabbitMQ();
 
-    await rabbitMQChannel.assertExchange(RABBIT_MQ_EXHANGES.QR_CODE_SERVICE_EXCHANGE, "fanout", {
-      durable: true,
-    });
-    logger.info(`RabbitMQ exchange '${RABBIT_MQ_EXHANGES.QR_CODE_SERVICE_EXCHANGE}' asserted.`);
+    const setupConsumers = async () => {
+      const channel = getRabbitMQChannel();
 
-    // 2. Connect to Kafka
-    // logger.info("Attempting to connect to Kafka...");
-    // const { producer: kafkaProducer, consumer: kafkaConsumer } = await connectKafka();
-    // logger.info("Kafka connection successful.");
+      if (channel) {
+        await channel.assertQueue(RABBIT_MQ_QUEUES.QR_SERVICE_QUEUE, { durable: true });
+        logger.info(`RabbitMQ: Queue '${RABBIT_MQ_QUEUES.QR_SERVICE_QUEUE}' asserted.`);
+      } else {
+        setTimeout(setupConsumers, 5000);
+      }
+    };
+    setupConsumers();
 
-    // // Example: Set up a Kafka consumer to listen to a topic
-    // const KAFKA_TOPIC = "my-app-topic";
-    // await kafkaConsumer.subscribe({ topic: KAFKA_TOPIC, fromBeginning: true });
-    // logger.info(`Kafka consumer subscribed to topic '${KAFKA_TOPIC}'.`);
+    const pgPool = getDbPool();
+    const urlRepository = createUrlRepository(pgPool);
+    const urlService = createUrlService(urlRepository);
+    const urlController = createUrlController(urlService);
 
-    // // Run the Kafka consumer process in the background
-    // kafkaConsumer.run({
-    //   eachMessage: async ({ topic, partition, message }) => {
-    //     logger.info(
-    //       {
-    //         topic,
-    //         partition,
-    //         offset: message.offset,
-    //         value: message.value.toString(),
-    //       },
-    //       "Received Kafka message",
-    //     );
-    //     // Add your message processing logic here
-    //   },
-    // });
+    const urlRouter = createUrlRouter(urlController);
+    const mainRouter = createMainRouter(urlRouter);
 
     app.use(pinoHttp.default({ logger }));
-    app.use("/", routes);
+    app.use("/", mainRouter);
 
     app.listen(port, () => {
       logger.info(`Server running on http://localhost:${port}`);
@@ -60,8 +53,8 @@ async function startApplication() {
 
     const shutdown = async () => {
       logger.info("Initiating graceful shutdown...");
-      // await closeKafka();
       await closeRabbitMQ();
+      await closeDbPool();
       logger.info("All connections closed. Exiting application.");
       process.exit(0);
     };
@@ -69,7 +62,7 @@ async function startApplication() {
     process.on("SIGINT", shutdown);
     process.on("SIGTERM", shutdown);
   } catch (error) {
-    logger.error("Application failed to start due to critical connection error:", error);
+    logger.error(getFormattedErrorMessage(error, "Application failed to start: "));
     process.exit(1);
   }
 }

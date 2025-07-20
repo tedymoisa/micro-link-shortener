@@ -1,67 +1,22 @@
-import { db } from "../config/db.js";
-import logger from "../config/logger.js";
-import { Url } from "../entities/Url.js";
-import { tryCatch } from "../lib/try-catch.js";
+import { sendMessage } from "../config/rabbitmq.js";
+import { RABBIT_MQ_QUEUES } from "../lib/globals.js";
+import { UrlRepository } from "../repositories/url-repository.js";
 
-const generateRandomShortCode = (length = 10): string => {
-  const characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  let result = "";
+const createUrlService = (urlRepository: UrlRepository) => {
+  return {
+    updateUrl: async (shortCode: string, longUrl: string) => {
+      const url = (await urlRepository).updateUrl(shortCode, longUrl);
 
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
+      sendMessage(RABBIT_MQ_QUEUES.QR_SERVICE_QUEUE, JSON.stringify({ shortCode: shortCode }));
 
-  return result;
+      return url;
+    },
+
+    getLongUrl: async (shortCode: string) => {
+      return (await urlRepository).getLongUrl(shortCode);
+    },
+  };
 };
 
-const updateUrls = async (shortCode: string, longUrl: string) => {
-  const { data, error } = await tryCatch(
-    db.query<Url>(
-      `
-      INSERT INTO urls (short_code, long_url)
-      VALUES ($1, $2)
-      ON CONFLICT (short_code)
-      DO UPDATE SET long_url = EXCLUDED.long_url
-      RETURNING *;
-      `,
-      [shortCode, longUrl],
-    ),
-  );
-
-  if (error) {
-    logger.error("Database upsert error!", error);
-    return null;
-  }
-
-  return data?.rows[0] ?? null;
-};
-
-const getUrl = async (shortCode: string): Promise<Url | null> => {
-  const { data, error } = await tryCatch(
-    db.query<Url>(
-      `
-      SELECT id, short_code, long_url, created_at FROM urls
-      WHERE short_code = $1;
-      `,
-      [shortCode],
-    ),
-  );
-
-  if (error) {
-    logger.error("Database query error for short code lookup!", {
-      error,
-      shortCode,
-    });
-    return null;
-  }
-
-  return data?.rows[0] ?? null;
-};
-
-const urlService = {
-  generateRandomShortCode: generateRandomShortCode,
-  updateUrls: updateUrls,
-  getUrl: getUrl,
-};
-
-export default urlService;
+export type UrlService = ReturnType<typeof createUrlService>;
+export default createUrlService;

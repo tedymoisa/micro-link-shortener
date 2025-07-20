@@ -1,11 +1,16 @@
 import { Router } from "express";
-import { createShortUrl, getUrl } from "../controllers/url-controller/url-controller.js";
+import { shortenReqSchema } from "../controllers/url-controller/dto/shorten-req.js";
+import { UrlController } from "../controllers/url-controller/url-controller.js";
 import { validateBody } from "../lib/utils.js";
-import { shortenReqSchema } from "../controllers/url-controller/dto/ShortenReq.js";
 
-const urlRouter = Router();
+const createUrlRouter = (urlController: UrlController) => {
+  const router = Router();
 
-urlRouter.post("/shorten", validateBody(shortenReqSchema), createShortUrl);
-urlRouter.get("/:shortCode", getUrl);
+  router.post("/shorten", validateBody(shortenReqSchema), urlController.createShortUrl);
+  router.get("/:shortCode", urlController.getUrl);
 
-export default urlRouter;
+  return router;
+};
+
+export type UrlRouter = ReturnType<typeof createUrlRouter>;
+export default createUrlRouter;

@@ -3,7 +3,7 @@ import { UrlRepository } from "./url-repository.js";
 import logger from "./config/logger.js";
 import { getFormattedErrorMessage } from "./lib/error.js";
 
-export function createUrlService(urlRepository: UrlRepository) {
+function createUrlService(urlRepository: UrlRepository) {
   return {
     async generateQRCode(msg: ConsumeMessage): Promise<void> {
       const messageId = msg.properties.messageId || "N/A";
@@ -23,3 +23,5 @@ export function createUrlService(urlRepository: UrlRepository) {
     },
   };
 }
+
+export default createUrlService;

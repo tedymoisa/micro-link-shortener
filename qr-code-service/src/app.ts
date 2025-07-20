@@ -5,7 +5,7 @@ import { closeRabbitMQ, connectRabbitMQ, startConsumingQueue } from "./config/ra
 import { getFormattedErrorMessage } from "./lib/error.js";
 import { RABBIT_MQ_QUEUES } from "./lib/globals.js";
 import { createUrlRepository } from "./url-repository.js";
-import { createUrlService } from "./url-service.js";
+import createUrlService from "./url-service.js";
 
 async function startWorkerApplication() {
   try {
