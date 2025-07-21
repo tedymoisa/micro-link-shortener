@@ -12,6 +12,7 @@ import createUrlController from "./controllers/url-controller/url-controller.js"
 import createUrlRouter from "./routes/url-routes.js";
 import createMainRouter from "./routes/index.js";
 import { getFormattedErrorMessage } from "./lib/error.js";
+import shutdown from "./config/shutdown.js";
 
 const port = env.PORT;
 
@@ -51,18 +52,10 @@ async function startApplication() {
       logger.info(`Server running on http://localhost:${port}`);
     });
 
-    const shutdown = async () => {
-      logger.info("Initiating graceful shutdown...");
-      await closeRabbitMQ();
-      await closeDbPool();
-      logger.info("All connections closed. Exiting application.");
-      process.exit(0);
-    };
-
     process.on("SIGINT", shutdown);
     process.on("SIGTERM", shutdown);
   } catch (error) {
-    logger.error(getFormattedErrorMessage(error, "Application failed to start: "));
+    logger.error(getFormattedErrorMessage(error, "Application failed to start."));
     process.exit(1);
   }
 }

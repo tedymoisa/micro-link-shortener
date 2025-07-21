@@ -2,12 +2,12 @@
   "name": "api-gateway",
   "version": "1.0.0",
   "description": "",
-  "main": "app.ts",
+  "main": "dist/index.mjs",
   "scripts": {
     "start": "tsx src/app.ts",
     "dev": "tsx watch src/app.ts",
-    "build": "tsc",
-    "serve:prod": "node dist/app.js",
+    "build": "vite build",
+    "serve:prod": "node dist/index.mjs",
     "debug": "node --inspect-brk -r tsx src/app.ts",
     "debug:watch": "tsx watch --inspect src/app.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -52,6 +52,8 @@
     "prettier": "^3.6.2",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.35.1"
+    "typescript-eslint": "^8.35.1",
+    "vite": "^7.0.5",
+    "vite-plugin-node": "^7.0.0"
   }
 }

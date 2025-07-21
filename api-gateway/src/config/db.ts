@@ -17,20 +17,20 @@ const dbConfig = {
 let pgPool: Pool;
 
 async function connectToDb(): Promise<void> {
-  logger.info("Attempting to connect to PostgreSQL...");
+  logger.info("PostgreSQL: Attempting to connect to the database...");
 
   if (pgPool) {
-    logger.warn("Database pool already initialized.");
+    logger.warn("PostgreSQL: Database pool already initialized.");
 
     return testPoolResponsiveness(pgPool);
   }
 
   try {
-    logger.info("Initializing database connection pool...");
+    logger.info("PostgreSQL: Initializing database connection pool...");
     pgPool = new Pool(dbConfig);
 
     await testPoolResponsiveness(pgPool);
-    logger.info("Database pool initialized and connected successfully.");
+    logger.info("PostgreSQL: Database pool initialized and connected successfully.");
   } catch (error) {
     logger.error(getFormattedErrorMessage(error, `Failed to initialize or connect to database.`));
 
@@ -52,7 +52,7 @@ async function testPoolResponsiveness(pool: Pool): Promise<void> {
       throw new Error("Database returned an unexpected response to a simple query.");
     }
 
-    logger.info("Database is responsive and healthy.");
+    logger.info("PostgreSQL: Database is responsive and healthy.");
   } catch (error) {
     logger.error(getFormattedErrorMessage(error, "Database connection or responsiveness check failed."));
     throw new Error(`Database connection or responsiveness check failed.`);
@@ -78,12 +78,10 @@ async function closeDbPool(): Promise<void> {
   }
 
   try {
-    logger.info("Closing database connection pool...");
     await pgPool.end();
-    logger.info("Database pool closed successfully.");
+    logger.info("PostgreSQL: Database pool closed successfully.");
   } catch (error) {
-    logger.error(getFormattedErrorMessage(error, `Failed to close database pool.`));
-    throw new Error(`Error during database pool shutdown.`);
+    throw new Error(getFormattedErrorMessage(error, "Failed to close database pool."));
   }
 }
 

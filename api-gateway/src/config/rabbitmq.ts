@@ -39,11 +39,11 @@ async function _attemptSingleConnection(): Promise<void> {
 
       if (error) {
         logger.error(getFormattedErrorMessage(error, "RabbitMQ connection closed with error"));
-      } else {
-        logger.warn("RabbitMQ connection closed gracefully.");
-      }
 
-      startPersistentRabbitMQReconnect();
+        startPersistentRabbitMQReconnect();
+      } else {
+        logger.info("RabbitMQ: Connection closed gracefully.");
+      }
     });
 
     _connection.on("error", (error) => {
@@ -130,9 +130,9 @@ export async function closeRabbitMQ(): Promise<void> {
   if (_channel) {
     try {
       await _channel.close();
-      logger.info("RabbitMQ channel closed.");
+      logger.info("RabbitMQ: Channel closed.");
     } catch (error) {
-      logger.error(getFormattedErrorMessage(error, "Error closing RabbitMQ channel"));
+      throw new Error(getFormattedErrorMessage(error, "Error closing RabbitMQ channel."));
     } finally {
       _channel = null;
     }
@@ -141,14 +141,12 @@ export async function closeRabbitMQ(): Promise<void> {
   if (_connection) {
     try {
       await _connection.close();
-      logger.info("RabbitMQ connection closed.");
     } catch (error) {
-      logger.error(getFormattedErrorMessage(error, "Error closing RabbitMQ connection"));
+      throw new Error(getFormattedErrorMessage(error, "Error closing RabbitMQ connection."));
     } finally {
       _connection = null;
     }
   }
-  logger.info("RabbitMQ: All resources released.");
 }
 
 export async function sendMessage(queue: string, message: string): Promise<boolean> {
