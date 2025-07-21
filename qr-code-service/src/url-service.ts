@@ -1,25 +1,22 @@
 import { ConsumeMessage } from "amqplib";
-import { UrlRepository } from "./url-repository.js";
 import logger from "./config/logger.js";
-import { getFormattedErrorMessage } from "./lib/error.js";
+import { UrlRepository } from "./url-repository.js";
 
 function createUrlService(urlRepository: UrlRepository) {
   return {
-    async generateQRCode(msg: ConsumeMessage): Promise<void> {
-      const messageId = msg.properties.messageId || "N/A";
+    async generateQRCode(msg: ConsumeMessage) {
+      const data = JSON.parse(msg.content.toString()) as { shortCode: string };
+      logger.info(`Processing message for shortCode: ${data.shortCode}`);
 
-      try {
-        const data = JSON.parse(msg.content.toString());
-        logger.info(`Processing message ID ${messageId} for shortCode: ${data.shortCode}`);
+      const qrCodePath = `QR code for ${data.shortCode}`;
 
-        const qrCodePath = `QR code for ${data.shortCode}`;
-
-        await urlRepository.updateQrCodePath(data.shortCode, qrCodePath);
-
-        logger.info("Simulated Database update for:", data.shortCode);
-      } catch (error) {
-        logger.error(getFormattedErrorMessage(`Failed to process message ID ${messageId}.`, error));
+      const row = await urlRepository.updateQrCodePath(data.shortCode, qrCodePath);
+      if (!row) {
+        logger.warn(`Error saving the QR code for: ${data.shortCode}`);
+        return;
       }
+
+      logger.info(`QR code saved for: ${data.shortCode}`);
     },
   };
 }

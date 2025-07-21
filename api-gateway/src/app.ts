@@ -3,16 +3,15 @@ import logger from "./config/logger.js";
 
 import express from "express";
 import pinoHttp from "pino-http";
-import { closeRabbitMQ, connectRabbitMQ, getRabbitMQChannel } from "./config/rabbitmq.js";
-import { RABBIT_MQ_QUEUES } from "./lib/globals.js";
-import { closeDbPool, connectToDb, getDbPool } from "./config/db.js";
-import createUrlRepository from "./repositories/url-repository.js";
-import createUrlService from "./services/url-service.js";
-import createUrlController from "./controllers/url-controller/url-controller.js";
-import createUrlRouter from "./routes/url-routes.js";
-import createMainRouter from "./routes/index.js";
-import { getFormattedErrorMessage } from "./lib/error.js";
+import { connectToDb, getDbPool } from "./config/db.js";
+import { connectRabbitMQ } from "./config/rabbitmq.js";
 import shutdown from "./config/shutdown.js";
+import createUrlController from "./controllers/url-controller/url-controller.js";
+import { getFormattedErrorMessage } from "./lib/error.js";
+import createUrlRepository from "./repositories/url-repository.js";
+import createMainRouter from "./routes/index.js";
+import createUrlRouter from "./routes/url-routes.js";
+import createUrlService from "./services/url-service.js";
 
 const port = env.PORT;
 
@@ -24,18 +23,6 @@ async function startApplication() {
   try {
     await connectToDb();
     connectRabbitMQ();
-
-    const setupConsumers = async () => {
-      const channel = getRabbitMQChannel();
-
-      if (channel) {
-        await channel.assertQueue(RABBIT_MQ_QUEUES.QR_SERVICE_QUEUE, { durable: true });
-        logger.info(`RabbitMQ: Queue '${RABBIT_MQ_QUEUES.QR_SERVICE_QUEUE}' asserted.`);
-      } else {
-        setTimeout(setupConsumers, 5000);
-      }
-    };
-    setupConsumers();
 
     const pgPool = getDbPool();
     const urlRepository = createUrlRepository(pgPool);

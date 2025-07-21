@@ -38,7 +38,7 @@ async function _attemptSingleConnection(): Promise<void> {
       _connection = null;
 
       if (error) {
-        logger.error(getFormattedErrorMessage(error, "RabbitMQ connection closed with error"));
+        logger.error(getFormattedErrorMessage(error, "RabbitMQ: Connection closed with error"));
 
         startPersistentRabbitMQReconnect();
       } else {
@@ -47,14 +47,14 @@ async function _attemptSingleConnection(): Promise<void> {
     });
 
     _connection.on("error", (error) => {
-      logger.error(getFormattedErrorMessage(error, "RabbitMQ connection error"));
+      logger.error(getFormattedErrorMessage(error, "RabbitMQ: Connection error"));
     });
 
     logger.info("RabbitMQ: Successfully established a connection and channel.");
   } catch (error) {
     _channel = null;
     _connection = null;
-    throw new Error(getFormattedErrorMessage(error, "Failed to establish RabbitMQ connection attempt"));
+    throw new Error(getFormattedErrorMessage(error, "RabbitMQ: Failed to establish connection attempt"));
   }
 }
 
@@ -132,7 +132,7 @@ export async function closeRabbitMQ(): Promise<void> {
       await _channel.close();
       logger.info("RabbitMQ: Channel closed.");
     } catch (error) {
-      throw new Error(getFormattedErrorMessage(error, "Error closing RabbitMQ channel."));
+      throw new Error(getFormattedErrorMessage(error, "RabbitMQ: Error closing RabbitMQ channel."));
     } finally {
       _channel = null;
     }
@@ -142,7 +142,7 @@ export async function closeRabbitMQ(): Promise<void> {
     try {
       await _connection.close();
     } catch (error) {
-      throw new Error(getFormattedErrorMessage(error, "Error closing RabbitMQ connection."));
+      throw new Error(getFormattedErrorMessage(error, "RabbitMQ: Error closing connection."));
     } finally {
       _connection = null;
     }

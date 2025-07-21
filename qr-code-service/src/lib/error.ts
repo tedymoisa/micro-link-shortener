@@ -19,13 +19,21 @@ function getSpecificErrorMessage(error: unknown): string | null {
   return null;
 }
 
-function getFormattedErrorMessage(descriptiveMessage: string, error: unknown): string {
+function getFormattedErrorMessage(error: unknown, descriptiveMessage?: string): string {
   const specificErrorMessage = getSpecificErrorMessage(error);
 
-  if (specificErrorMessage) {
-    return `${descriptiveMessage}: ${specificErrorMessage}`;
+  if (descriptiveMessage) {
+    if (specificErrorMessage) {
+      return `${descriptiveMessage}: ${specificErrorMessage}`;
+    } else {
+      return descriptiveMessage;
+    }
   } else {
-    return descriptiveMessage;
+    if (specificErrorMessage) {
+      return specificErrorMessage;
+    } else {
+      return "An unknown error occurred.";
+    }
   }
 }
 

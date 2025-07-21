@@ -5,7 +5,7 @@ import { UrlRepository } from "../repositories/url-repository.js";
 const createUrlService = (urlRepository: UrlRepository) => {
   return {
     updateUrl: async (shortCode: string, longUrl: string) => {
-      const url = (await urlRepository).updateUrl(shortCode, longUrl);
+      const url = await urlRepository.updateUrl(shortCode, longUrl);
 
       sendMessage(RABBIT_MQ_QUEUES.QR_SERVICE_QUEUE, JSON.stringify({ shortCode: shortCode }));
 
@@ -13,7 +13,7 @@ const createUrlService = (urlRepository: UrlRepository) => {
     },
 
     getLongUrl: async (shortCode: string) => {
-      return (await urlRepository).getLongUrl(shortCode);
+      return await urlRepository.getLongUrl(shortCode);
     },
   };
 };
