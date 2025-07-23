@@ -12,6 +12,7 @@ import createUrlRepository from "./repositories/url-repository.js";
 import createMainRouter from "./routes/index.js";
 import createUrlRouter from "./routes/url-routes.js";
 import createUrlService from "./services/url-service.js";
+import { connectToRedis, getRedisClient } from "./config/redis.js";
 
 const port = env.PORT;
 
@@ -22,10 +23,12 @@ app.use(express.json());
 async function startApplication() {
   try {
     await connectToDb();
+    await connectToRedis();
     connectRabbitMQ();
 
     const pgPool = getDbPool();
-    const urlRepository = createUrlRepository(pgPool);
+    const redisClient = getRedisClient();
+    const urlRepository = createUrlRepository(pgPool, redisClient);
     const urlService = createUrlService(urlRepository);
     const urlController = createUrlController(urlService);
 

@@ -1,8 +1,9 @@
 import { Pool } from "pg";
 import logger from "../config/logger.js";
 import { Url } from "../entities/Url.js";
+import { RedisClientType } from "redis";
 
-const createUrlRepository = (dbPool: Pool) => {
+const createUrlRepository = (dbPool: Pool, redisClient: RedisClientType) => {
   return {
     updateUrl: async (shortCode: string, longUrl: string) => {
       const dbClient = await dbPool.connect();
