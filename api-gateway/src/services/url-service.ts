@@ -7,7 +7,7 @@ const createUrlService = (urlRepository: UrlRepository) => {
     updateUrl: async (shortCode: string, longUrl: string) => {
       const url = await urlRepository.updateUrl(shortCode, longUrl);
 
-      sendMessage(RABBIT_MQ_QUEUES.QR_SERVICE_QUEUE, JSON.stringify({ shortCode: shortCode }));
+      sendMessage(RABBIT_MQ_QUEUES.QR_SERVICE_QUEUE, JSON.stringify({ shortCode, longUrl }));
 
       return url;
     },

@@ -11,7 +11,7 @@ export function createUrlRepository(dbPool: Pool) {
       try {
         const result = await dbClient.query<Url>(
           `
-            UPDATE urls SET qr_code_path = $1 WHERE short_code = $2 RETURNING *;
+            UPDATE urls SET qr_code = $1 WHERE short_code = $2 RETURNING *;
           `,
           [qrCodePath, shortCode],
         );
