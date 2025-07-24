@@ -29,6 +29,11 @@ async function connectToDb(): Promise<void> {
     logger.info("PostgreSQL: Initializing database connection pool...");
     pgPool = new Pool(dbConfig);
 
+    pgPool.on("error", (error) => {
+      logger.error(getFormattedErrorMessage(error, "PostgreSQL: Error. Closing application immediately"));
+      process.exit(1);
+    });
+
     await testPoolResponsiveness(pgPool);
     logger.info("PostgreSQL: Database pool initialized and connected successfully.");
   } catch (error) {
