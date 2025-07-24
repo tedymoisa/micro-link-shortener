@@ -13,6 +13,7 @@ import createMainRouter from "./routes/index.js";
 import createUrlRouter from "./routes/url-routes.js";
 import createUrlService from "./services/url-service.js";
 import { connectToRedis, getRedisClient } from "./config/redis.js";
+import createRedisCacheService from "./services/redis-cache-service.js";
 
 const port = env.PORT;
 
@@ -28,8 +29,10 @@ async function startApplication() {
 
     const pgPool = getDbPool();
     const redisClient = getRedisClient();
-    const urlRepository = createUrlRepository(pgPool, redisClient);
-    const urlService = createUrlService(urlRepository);
+
+    const urlRepository = createUrlRepository(pgPool);
+    const redisCacheService = createRedisCacheService(redisClient);
+    const urlService = createUrlService(urlRepository, redisCacheService);
     const urlController = createUrlController(urlService);
 
     const urlRouter = createUrlRouter(urlController);
@@ -45,7 +48,7 @@ async function startApplication() {
     process.on("SIGINT", shutdown);
     process.on("SIGTERM", shutdown);
   } catch (error) {
-    logger.error(getFormattedErrorMessage(error, "Application failed to start."));
+    logger.error(getFormattedErrorMessage(error, "Application failed to start"));
     process.exit(1);
   }
 }

@@ -20,16 +20,28 @@ const createUrlController = (urlService: UrlService) => {
       res.json(row);
     },
 
-    getUrl: async (req: Request, res: Response) => {
+    getLongUrl: async (req: Request, res: Response) => {
       const { shortCode } = req.params;
 
-      const row = await urlService.getLongUrl(shortCode);
-      if (!row) {
+      const longUrl = await urlService.getLongUrl(shortCode);
+      if (!longUrl) {
         res.status(400);
         return;
       }
 
-      res.json(row);
+      res.json({ longUrl });
+    },
+
+    getQrCode: async (req: Request, res: Response) => {
+      const { shortCode } = req.params;
+
+      const qrCode = await urlService.getQrCode(shortCode);
+      if (!qrCode) {
+        res.status(400);
+        return;
+      }
+
+      res.json({ qrCode });
     },
   };
 };

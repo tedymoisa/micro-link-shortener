@@ -3,7 +3,7 @@ import logger from "../config/logger.js";
 import { Url } from "../entities/Url.js";
 import { RedisClientType } from "redis";
 
-const createUrlRepository = (dbPool: Pool, redisClient: RedisClientType) => {
+const createUrlRepository = (dbPool: Pool) => {
   return {
     updateUrl: async (shortCode: string, longUrl: string) => {
       const dbClient = await dbPool.connect();
@@ -29,13 +29,13 @@ const createUrlRepository = (dbPool: Pool, redisClient: RedisClientType) => {
       }
     },
 
-    getLongUrl: async (shortCode: string) => {
+    getUrl: async (shortCode: string) => {
       const dbClient = await dbPool.connect();
 
       try {
         const result = await dbClient.query<Url>(
           `
-          SELECT id, short_code, long_url, created_at FROM urls
+          SELECT id, short_code, long_url, created_at, qr_code FROM urls
           WHERE short_code = $1;
         `,
           [shortCode],
