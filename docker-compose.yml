@@ -29,5 +29,18 @@ services:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: pass
 
+  redis:
+    image: redis:8-alpine
+    container_name: micro-link-shortener-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: pass
+    command: ["redis-server", "--requirepass", "pass"]
+    volumes:
+      - redis_data:/data
+
 volumes:
   postgres_data:
+  redis_data:

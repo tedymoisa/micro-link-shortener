@@ -12,6 +12,8 @@ import createUrlRepository from "./repositories/url-repository.js";
 import createMainRouter from "./routes/index.js";
 import createUrlRouter from "./routes/url-routes.js";
 import createUrlService from "./services/url-service.js";
+import { connectToRedis, getRedisClient } from "./config/redis.js";
+import createRedisCacheService from "./services/redis-cache-service.js";
 
 const port = env.PORT;
 
@@ -22,11 +24,15 @@ app.use(express.json());
 async function startApplication() {
   try {
     await connectToDb();
+    await connectToRedis();
     connectRabbitMQ();
 
     const pgPool = getDbPool();
+    const redisClient = getRedisClient();
+
     const urlRepository = createUrlRepository(pgPool);
-    const urlService = createUrlService(urlRepository);
+    const redisCacheService = createRedisCacheService(redisClient);
+    const urlService = createUrlService(urlRepository, redisCacheService);
     const urlController = createUrlController(urlService);
 
     const urlRouter = createUrlRouter(urlController);
@@ -42,7 +48,7 @@ async function startApplication() {
     process.on("SIGINT", shutdown);
     process.on("SIGTERM", shutdown);
   } catch (error) {
-    logger.error(getFormattedErrorMessage(error, "Application failed to start."));
+    logger.error(getFormattedErrorMessage(error, "Application failed to start"));
     process.exit(1);
   }
 }

@@ -7,7 +7,8 @@ const createUrlRouter = (urlController: UrlController) => {
   const router = Router();
 
   router.post("/shorten", validateBody(shortenReqSchema), urlController.createShortUrl);
-  router.get("/:shortCode", urlController.getUrl);
+  router.get("/:shortCode/url", urlController.getLongUrl);
+  router.get("/:shortCode/qr", urlController.getQrCode);
 
   return router;
 };
